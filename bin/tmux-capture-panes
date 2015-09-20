@@ -1,0 +1,48 @@
+#!/bin/sh
+#
+# Copyright (c) 2015 Hannes von Haugwitz
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+
+usage() {
+    printf "usage: %s [starting line number]\n" "$(basename "$0")"
+    exit "$1"
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ] ; then
+    usage 0
+fi
+[ -n "$2" ] && usage 1 1>&2
+
+START=${1:-0}
+
+for SESSION_WIDTH in $(tmux list-sessions -F "#S:#{session_width}" 2> /dev/null); do
+    S=${SESSION_WIDTH%:*}
+    WIDTH=${SESSION_WIDTH#*:}
+    for W in $(tmux list-windows -t "${S}" -F '#I') ; do
+        for P in $(tmux list-panes -t "${S}:${W}" -F '#P') ; do
+            PANE="${S}:${W}.${P}"
+            printf '### %s ' "${PANE}"
+            printf '%-*s\n' $((WIDTH - ${#PANE} - 5)) ' ' | sed -e 's/ /\#/g'
+            tmux capture-pane -J -t "${PANE}" -p -S "${START}"
+        done
+    done
+done
+
+exit 0
