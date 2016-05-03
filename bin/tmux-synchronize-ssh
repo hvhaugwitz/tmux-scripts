@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (c) 2011,2015 Hannes von Haugwitz
+# Copyright (c) 2011,2015,2016 Hannes von Haugwitz
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -21,13 +21,27 @@
 # THE SOFTWARE.
 
 usage() {
-    printf "usage: %s [user@]host1 [[user@]host2...]\n" "$(basename "$0")"
+    printf "usage: %s [-o ssh_option] [user@]host1 [[user@]host2...]\n" "$(basename "$0")"
     exit "$1"
 }
 
-if [ "$1" = "-h" ] || [ "$1" = "--help" ] ; then
-    usage 0
-fi
+SSH_OPTIONS=""
+
+while test $# -gt 0 ; do
+    case $1 in
+        -h)
+            usage 0
+            ;;
+        -o)
+            SSH_OPTIONS="${SSH_OPTIONS} $1 $2"
+            shift 2
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
+
 if [ -z "${TMUX}" ]; then
     printf "error: \$TMUX not set, please run '%s' inside a tmux session\n" "$(basename "$0")" 1>&2
     exit 1
@@ -38,12 +52,12 @@ FIRST="$1"
 shift
 if [ -n "$1" ] ; then
     for i in "$@" ; do
-        tmux splitw -d "ssh $i"
+        tmux splitw -d "ssh ${SSH_OPTIONS} $i"
         tmux select-layout tiled > /dev/null
     done
     tmux set-option -w synchronize-panes on > /dev/null
 fi
-ssh "$FIRST"
+ssh ${SSH_OPTIONS} ${FIRST}
 [ -n "$1" ] && tmux set-option -w synchronize-panes off > /dev/null
 
 exit 0
