@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (c) 2015 Hannes von Haugwitz
+# Copyright (c) 2015,2016 Hannes von Haugwitz
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -21,13 +21,27 @@
 # THE SOFTWARE.
 
 usage() {
-    printf "usage: %s [starting line number]\n" "$(basename "$0")"
+    printf "usage: %s [-i NAME] [LINE NUMBER]\n" "$(basename "$0")"
     exit "$1"
 }
 
-if [ "$1" = "-h" ] || [ "$1" = "--help" ] ; then
-    usage 0
-fi
+IGNORE_LIST=""
+
+while test $# -gt 0 ; do
+    case $1 in
+        -h)
+            usage 0
+            ;;
+        -i)
+            IGNORE_LIST="${IGNORE_LIST} ${2}"
+            shift 2
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
+
 [ -n "$2" ] && usage 1 1>&2
 
 START=${1:-0}
@@ -36,6 +50,13 @@ for SESSION_WIDTH in $(tmux list-sessions -F "#S:#{session_width}" 2> /dev/null)
     S=${SESSION_WIDTH%:*}
     WIDTH=${SESSION_WIDTH#*:}
     for W in $(tmux list-windows -t "${S}" -F '#I') ; do
+        WNAME="$(tmux display -p -t "${S}:${W}" -F '#W')"
+        for IGNORE in ${IGNORE_LIST} ; do
+            if [ "${WNAME}" = "${IGNORE}" ] ; then
+                printf "### %s:%s (%s) ignored as requested\n" "${S}" "${W}" "${WNAME}"
+                continue 2;
+            fi
+        done
         for P in $(tmux list-panes -t "${S}:${W}" -F '#P') ; do
             PANE="${S}:${W}.${P}"
             printf '### %s ' "${PANE}"
