@@ -59,8 +59,8 @@ for SESSION_WIDTH in $(tmux list-sessions -F "#S:#{session_width}" 2> /dev/null)
         done
         for P in $(tmux list-panes -t "${S}:${W}" -F '#P') ; do
             PANE="${S}:${W}.${P}"
-            printf '### %s ' "${PANE}"
-            printf '%-*s\n' $((WIDTH - ${#PANE} - 5)) ' ' | sed -e 's/ /\#/g'
+            printf '### %s (%s) ' "${PANE}" "${WNAME}"
+            printf '%-*s\n' $((WIDTH - ${#PANE} - ${#WNAME} - 8)) ' ' | sed -e 's/ /\#/g'
             tmux capture-pane -J -e -t "${PANE}" -p -S "${START}"
         done
     done
