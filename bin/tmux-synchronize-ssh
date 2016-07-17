@@ -21,11 +21,12 @@
 # THE SOFTWARE.
 
 usage() {
-    printf "usage: %s [-o ssh_option] [user@]host1 [[user@]host2...]\n" "$(basename "$0")"
+    printf "usage: %s [-o ssh_option] [-l layout] [user@]host1 [[user@]host2...]\n" "$(basename "$0")"
     exit "$1"
 }
 
 SSH_OPTIONS=""
+LAYOUT="tiled"
 
 while test $# -gt 0 ; do
     case $1 in
@@ -34,6 +35,10 @@ while test $# -gt 0 ; do
             ;;
         -o)
             SSH_OPTIONS="${SSH_OPTIONS} $1 $2"
+            shift 2
+            ;;
+        -l)
+            LAYOUT="$2"
             shift 2
             ;;
         *)
@@ -53,7 +58,7 @@ shift
 if [ -n "$1" ] ; then
     for i in "$@" ; do
         tmux splitw -d "ssh ${SSH_OPTIONS} $i"
-        tmux select-layout tiled > /dev/null
+        tmux select-layout "${LAYOUT}" > /dev/null
     done
     tmux set-option -w synchronize-panes on > /dev/null
 fi
