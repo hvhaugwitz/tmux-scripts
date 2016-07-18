@@ -47,11 +47,12 @@ while test $# -gt 0 ; do
     esac
 done
 
+[ -z "$1" ] && usage 1 1>&2
+
 if [ -z "${TMUX}" ]; then
     printf "error: \$TMUX not set, please run '%s' inside a tmux session\n" "$(basename "$0")" 1>&2
     exit 1
 fi
-[ -z "$1" ] && usage 1 1>&2
 
 FIRST="$1"
 shift
