@@ -21,10 +21,11 @@
 # THE SOFTWARE.
 
 usage() {
-    printf "usage: %s [-o ssh_option] [-l layout] [user@]host1 [[user@]host2...]\n" "$(basename "$0")"
+    printf "usage: %s [-o ssh_option] [-l layout] [-e executable] [user@]host1 [[user@]host2...]\n" "$(basename "$0")"
     exit "$1"
 }
 
+EXECUTABLE="ssh"
 SSH_OPTIONS=""
 LAYOUT="tiled"
 
@@ -39,6 +40,10 @@ while test $# -gt 0 ; do
             ;;
         -l)
             LAYOUT="$2"
+            shift 2
+            ;;
+        -e)
+            EXECUTABLE="$2"
             shift 2
             ;;
         *)
@@ -58,12 +63,12 @@ FIRST="$1"
 shift
 if [ -n "$1" ] ; then
     for i in "$@" ; do
-        tmux splitw -d "ssh ${SSH_OPTIONS} $i"
+        tmux splitw -d "${EXECUTABLE} ${SSH_OPTIONS} $i"
         tmux select-layout "${LAYOUT}" > /dev/null
     done
     tmux set-option -w synchronize-panes on > /dev/null
 fi
-ssh ${SSH_OPTIONS} ${FIRST}
+${EXECUTABLE} ${SSH_OPTIONS} ${FIRST}
 [ -n "$1" ] && tmux set-option -w synchronize-panes off > /dev/null
 
 exit 0
