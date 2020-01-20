@@ -61,8 +61,14 @@ fi
 
 FIRST="$1"
 shift
+
+REVERSE_ARGS=
+for HOST in "$@" ; do
+    REVERSE_ARGS="${HOST} ${REVERSE_ARGS}"
+done
+
 if [ -n "$1" ] ; then
-    for i in "$@" ; do
+    for i in ${REVERSE_ARGS} ; do
         tmux splitw -d "${EXECUTABLE} ${SSH_OPTIONS} $i"
         tmux select-layout "${LAYOUT}" > /dev/null
     done
