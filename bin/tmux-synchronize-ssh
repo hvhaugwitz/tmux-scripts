@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (c) 2011,2015,2016 Hannes von Haugwitz
+# Copyright (c) 2011,2015,2016,2020,2022 Hannes von Haugwitz
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -68,13 +68,14 @@ for HOST in "$@" ; do
 done
 
 if [ -n "$1" ] ; then
+    TARGET_WINDOW="$(tmux display -p -F '#{session_id}:#{window_index}')"
     for i in ${REVERSE_ARGS} ; do
-        tmux splitw -d "${EXECUTABLE} ${SSH_OPTIONS} $i"
-        tmux select-layout "${LAYOUT}" > /dev/null
+        tmux splitw -t "${TARGET_WINDOW}" -d "${EXECUTABLE} ${SSH_OPTIONS} $i"
+        tmux select-layout -t "${TARGET_WINDOW}" "${LAYOUT}" > /dev/null
     done
-    tmux set-option -w synchronize-panes on > /dev/null
+    tmux set-option -t "${TARGET_WINDOW}" -w synchronize-panes on > /dev/null
 fi
 ${EXECUTABLE} ${SSH_OPTIONS} ${FIRST}
-[ -n "$1" ] && tmux set-option -w synchronize-panes off > /dev/null
+[ -n "$1" ] && tmux set-option -t "${TARGET_WINDOW}" -w synchronize-panes off > /dev/null
 
 exit 0
